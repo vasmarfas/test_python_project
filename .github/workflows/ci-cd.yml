@@ -10,10 +10,7 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -38,10 +35,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Deploy via SSH
+    - name: Deploy to Render
       env:
-        DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       run: |
-        echo "$DEPLOY_KEY" > deploy_key
-        chmod 600 deploy_key
-        ssh -i deploy_key -o StrictHostKeyChecking=no user@your-server "cd /path/to/project && git pull && systemctl restart your-service"
+        curl -X POST \
+        -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+        -H "Content-Type: application/json" \
+        -d '{"serviceId": "test-python-project"}' \
+        https://api.render.com/deploy
